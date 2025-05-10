@@ -72,7 +72,7 @@ async def add(update: Update, context: CallbackContext):
 
     await update.message.reply_text(f"✅ Đã thêm @{username} (ID: {user_id}) vào danh sách VIP.")
 
-# Hàm xử lý lệnh spam
+# Hàm xử lý lệnh spam (Spam Vip)
 async def spam(update: Update, context: CallbackContext):
     global last_spam_time, spam_process
 
@@ -135,7 +135,7 @@ async def spam(update: Update, context: CallbackContext):
 
     asyncio.create_task(stop_spam_after_delay())
 
-# Hàm xử lý lệnh SMS
+# Hàm xử lý lệnh SMS (Spam thường)
 async def sms(update: Update, context: CallbackContext):
     global last_sms_time, sms_process
 
