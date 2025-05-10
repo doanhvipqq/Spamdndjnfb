@@ -170,7 +170,7 @@ async def sms(update: Update, context: CallbackContext):
     await update.message.reply_text(
         f"⚡*Bắt đầu tấn công SEVER1*\n"
         f"📱*Số điện thoại:* {phone}\n"
-        f"🌩️*Vòng lặp:* {loops}\nGroup free spam sms https://t.me/c12toolspamsmscall",
+        f"🌩️*Vòng lặp:* {loops},
         parse_mode="Markdown"
     )
 
