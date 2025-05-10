@@ -228,7 +228,7 @@ async def server(update: Update, context: CallbackContext):
 # Hàm chính
 if __name__ == "__main__":
     # Thay token bot của bạn
-    TOKEN = "7463062603:AAE_Kq1Y0K0GBSfFwNu_WTbWQqHT7JR1M0Y"
+    TOKEN = os.getenv("TELEGRAM_TOKEN")
 
     # Tạo bot
     app = Application.builder().token(TOKEN).build()
