@@ -1,0 +1,8 @@
+pytz
+psutil
+urllib3
+colorama
+requests
+apscheduler
+speedtest-cli
+python-telegram-bot
