@@ -7,9 +7,10 @@ import subprocess
 import re
 import hashlib
 from datetime import datetime
-from telegram import Update, User
+from telegram import Update, User, InlineKeyboardButton, InlineKeyboardMarkup
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from telegram.ext import CommandHandler, CallbackContext, Application
+from telegram.ext import CommandHandler, CallbackContext, Application, CallbackQueryHandler
+
 
 # Biến toàn cục
 last_sms_time = {}
@@ -18,8 +19,37 @@ sms_process = None
 spam_process = None
 user_sessions = {}  # Lưu trữ session người dùng
 
+# Đường dẫ    # Gửi thông báo bắt đầu với giao diện đẹp
+    # Biến toàn cục
+last_sms_time = {}
+last_spam_time = {}
+sms_process = None
+spam_process = None
+user_sessions = {}  # Lưu trữ session người dùng
+
 # Đường dẫn file JSON
 VIP_FILE = "vip.json"
+LOGS_FILE = "attack_logs.json"
+
+# Khởi tạo file JSON nếu chưa tồn tại
+if not os.path.exists(VIP_FILE):
+    with open(VIP_FILE, "w") as file:
+        json.dump({}, file)
+
+if not os.path.exists(LOGS_FILE):
+    with open(LOGS_FILE, "w") as file:
+        json.dump([], file)
+
+    # Xóa tin nhắn gốc và tin nhắn phản hồi sau 3 giây
+    async def delete_messages():
+        await asyncio.sleep(3)
+        try:
+            await update.message.delete()
+            await sent_message.delete()
+        except:
+            pass
+
+    asyncio.create_task(delete_messages())IP_FILE = "vip.json"
 LOGS_FILE = "attack_logs.json"
 
 # Khởi tạo file JSON nếu chưa tồn tại
@@ -83,6 +113,181 @@ def check_server():
     except:
         return False
 
+# Hàm thêm người dùng vào VIP (cải tiến)
+
+# Hàm xử lý callback từ menu
+async def button_handler(update: Update, context: CallbackContext):
+    """Xử lý các nút bấm từ menu"""
+    query = update.callback_query
+    await query.answer()
+    
+    if query.data == "menu_sms":
+        await show_sms_menu(update, context)
+    elif query.data == "menu_spam":
+        await show_spam_menu(update, context)
+    elif query.data == "menu_server":
+        await server(update, context)
+    elif query.data == "menu_logs":
+        await show_logs(update, context)
+    elif query.data == "menu_help":
+        await show_help(update, context)
+    elif query.data == "menu_vip":
+        await show_vip_info(update, context)
+    elif query.data == "back_main":
+        await start(update, context)
+
+async def show_sms_menu(update: Update, context: CallbackContext):
+    """Hiển thị hướng dẫn SMS attack"""
+    keyboard = [[InlineKeyboardButton("🔙 Quay lại", callback_data="back_main")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    text = """
+📱 **SMS ATTACK - FREE**
+
+🔧 **Cách sử dụng:**
+`/sms [số điện thoại] [số vòng]`
+
+📝 **Ví dụ:**
+`/sms 0987654321 50`
+
+⚠️ **Lưu ý:**
+• Cooldown: 100 giây
+• Max vòng lặp: 10,000
+• Thời gian chạy: 120 giây
+
+🔐 **Bảo mật:** Số điện thoại sẽ được mã hóa trong log
+    """
+    
+    await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+
+async def show_spam_menu(update: Update, context: CallbackContext):
+    """Hiển thị hướng dẫn VIP attack"""
+    keyboard = [[InlineKeyboardButton("🔙 Quay lại", callback_data="back_main")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    text = """
+💥 **VIP ATTACK - PREMIUM**
+
+🔧 **Cách sử dụng:**
+`/spam [số điện thoại] [số vòng]`
+
+📝 **Ví dụ:**
+`/spam 0987654321 100`
+
+⚡ **Ưu điểm VIP:**
+• Cooldown: 60 giây
+• Max vòng lặp: 10,000
+• Thời gian chạy: 200 giây
+• Tốc độ cao hơn
+
+🔐 **Bảo mật:** Số điện thoại được mã hóa MD5
+    """
+    
+    await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+
+async def show_logs(update: Update, context: CallbackContext):
+    """Hiển thị logs tấn công gần đây"""
+    keyboard = [[InlineKeyboardButton("🔙 Quay lại", callback_data="back_main")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    try:
+        with open(LOGS_FILE, "r") as file:
+            logs = json.load(file)
+        
+        if not logs:
+            text = "📋 **ATTACK LOGS**\n\n❌ Chưa có log nào được ghi nhận."
+        else:
+            text = "📋 **ATTACK LOGS** (10 gần nhất)\n\n"
+            for log in logs[-10:]:
+                time_str = datetime.fromisoformat(log['timestamp']).strftime('%H:%M:%S %d/%m')
+                text += f"🕐 {time_str}\n"
+                text += f"👤 User: {log.get('username', 'Unknown')}\n"
+                text += f"📱 Phone: {log['phone_masked']}\n"
+                text += f"🎯 Type: {log['attack_type']}\n"
+                text += f"🔄 Loops: {log['loops']}\n"
+                text += f"🔑 Hash: {log['phone_hash']}\n\n"
+    except:
+        text = "📋 **ATTACK LOGS**\n\n❌ Lỗi đọc file log."
+    
+    await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+
+async def show_help(update: Update, context: CallbackContext):
+    """Hiển thị hướng dẫn sử dụng"""
+    keyboard = [[InlineKeyboardButton("🔙 Quay lại", callback_data="back_main")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    text = """
+❓ **HƯỚNG DẪN SỬ DỤNG**
+
+🔹 **Lệnh cơ bản:**
+• `/start` - Mở menu chính
+• `/sms` - SMS attack miễn phí
+• `/spam` - VIP attack premium
+• `/server` - Kiểm tra server
+
+🔹 **Định dạng số điện thoại:**
+• Phải bắt đầu bằng số 0
+• Đủ 10 chữ số
+• Ví dụ: 0987654321
+
+🔹 **Bảo mật:**
+• Số điện thoại được mã hóa trong log
+• Không lưu trữ số thật
+• Chỉ admin mới xem được log đầy đủ
+
+💡 **Lưu ý:** Bot có cooldown để tránh spam
+    """
+    
+    await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+
+async def show_vip_info(update: Update, context: CallbackContext):
+    """Hiển thị thông tin VIP"""
+    keyboard = [[InlineKeyboardButton("🔙 Quay lại", callback_data="back_main")]]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    
+    user_id = update.effective_user.id
+    
+    # Kiểm tra VIP status
+    with open(VIP_FILE, "r") as file:
+        vip_data = json.load(file)
+    
+    is_vip = user_id in vip_data.values()
+    
+    if is_vip:
+        status = "👑 **VIP MEMBER**"
+        benefits = """
+✅ **Quyền lợi của bạn:**
+• Không giới hạn sử dụng /spam
+• Cooldown ngắn hơn (60s)
+• Tốc độ attack cao hơn
+• Ưu tiên hỗ trợ
+        """
+    else:
+        status = "👤 **FREE USER**"
+        benefits = """
+📝 **Để trở thành VIP:**
+• Liên hệ admin: `/admin`
+• Hoặc inbox trực tiếp
+• Giá cả hợp lý
+
+💰 **Lợi ích VIP:**
+• Attack mạnh hơn
+• Cooldown ngắn
+• Hỗ trợ 24/7
+        """
+    
+    text = f"""
+👑 **THÔNG TIN VIP**
+
+{status}
+
+{benefits}
+
+🆔 **User ID:** `{user_id}`
+⏰ **Thời gian:** {datetime.now().strftime('%H:%M:%S')}
+    """
+    
+    await update.callback_query.edit_message_text(text, reply_markup=reply_markup, parse_mode="Markdown")
 # Hàm thêm người dùng vào VIP (cải tiến)
 async def add(update: Update, context: CallbackContext):
     user: User = update.effective_user
@@ -305,9 +510,9 @@ async def sms(update: Update, context: CallbackContext):
 
     # Gửi thông báo bắt đầu với giao diện đẹp
     masked_phone = mask_phone_number(phone)
-    sent_message = await update.message.reply_text(
+    await update.message.reply_text(
         f"📱 **SMS ATTACK STARTED** 📱\n\n"
-        f"👤 **User:** @{username}\n"
+        f"� **User:** @{username}\n"
         f"📱 **Target:** `{masked_phone}`\n"
         f"🔄 **Loops:** {loops:,}\n"
         f"⏰ **Started:** {now.strftime('%H:%M:%S')}\n"
@@ -316,17 +521,6 @@ async def sms(update: Update, context: CallbackContext):
         f"🔐 **Bảo mật:** Số điện thoại đã được mã hóa",
         parse_mode="Markdown"
     )
-
-    # Xóa tin nhắn gốc và tin nhắn phản hồi sau 3 giây
-    async def delete_messages():
-        await asyncio.sleep(3)
-        try:
-            await update.message.delete()
-            await sent_message.delete()
-        except:
-            pass
-
-    asyncio.create_task(delete_messages())
 
     # Dừng tiến trình cũ nếu có
     if sms_process and sms_process.poll() is None:
@@ -444,3 +638,7 @@ if __name__ == "__main__":
     print("🔐 Security: Phone masking, Attack logging")
     print("✅ Bot is ready and listening...")
     app.run_polling()
+
+
+
+

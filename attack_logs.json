@@ -1,0 +1,20 @@
+[
+  {
+    "timestamp": "2025-08-17T18:41:46.114277",
+    "user_id": 7509896689,
+    "username": "doanhvip12",
+    "phone_masked": "086****740",
+    "attack_type": "VIP_SPAM",
+    "loops": 1,
+    "phone_hash": "468cf1e3"
+  },
+  {
+    "timestamp": "2025-08-17T18:53:34.261808",
+    "user_id": 7509896689,
+    "username": "doanhvip12",
+    "phone_masked": "086****740",
+    "attack_type": "VIP_SPAM",
+    "loops": 1,
+    "phone_hash": "468cf1e3"
+  }
+]
