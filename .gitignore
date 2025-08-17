@@ -1,0 +1,38 @@
+# Log files
+*.log
+attack_logs.json
+
+# Config files with sensitive data
+vip.json
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Backup files
+*_backup.py
+*.bak
+*.tmp
+
+# Test files
+test_*
+*_test.py
