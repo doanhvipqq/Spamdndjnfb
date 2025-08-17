@@ -25,8 +25,8 @@ if not os.path.exists(VIP_FILE):
         json.dump({}, file)
 
 # ID admin được phép sử dụng lệnh /add
-ADMIN_ID = 7605936504
-GROUP_ID = -1002408191237
+ADMIN_ID = 7509896689
+GROUP_ID = -1002256706038
 
 # Hàm kiểm tra server
 def check_server():
@@ -228,7 +228,7 @@ async def server(update: Update, context: CallbackContext):
 # Hàm chính
 if __name__ == "__main__":
     # Thay token bot của bạn
-    TOKEN = os.getenv("TELEGRAM_TOKEN")
+    TOKEN = os.getenv("7905621710:AAEGFz44YBSzkUevXKDoEM73VLJl12ilnes")
 
     # Tạo bot
     app = Application.builder().token(TOKEN).build()
