@@ -79,13 +79,6 @@ async def spam(update: Update, context: CallbackContext):
     user_id = update.effective_user.id
     now = datetime.now()
 
-    # Kiểm tra quyền VIP
-    with open(VIP_FILE, "r") as file:
-        vip_data = json.load(file)
-    if user_id not in vip_data.values():
-        await update.message.reply_text("❌ Bạn không có quyền vì chưa mua VIP. Hãy ib `/admin` để mua VIP.")
-        return
-
     # Kiểm tra cooldown 60s
     if user_id in last_spam_time and (now - last_spam_time[user_id]).total_seconds() < 60:
         await update.message.reply_text("❌ Bạn cần chờ 60 giây trước khi sử dụng lệnh này lại.")
@@ -228,7 +221,7 @@ async def server(update: Update, context: CallbackContext):
 # Hàm chính
 if __name__ == "__main__":
     # Thay token bot của bạn
-    TOKEN = os.getenv("7905621710:AAEGFz44YBSzkUevXKDoEM73VLJl12ilnes")
+    TOKEN = "7905621710:AAEGFz44YBSzkUevXKDoEM73VLJl12ilnes"
 
     # Tạo bot
     app = Application.builder().token(TOKEN).build()
