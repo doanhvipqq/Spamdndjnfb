@@ -25,8 +25,8 @@ if not os.path.exists(VIP_FILE):
         json.dump({}, file)
 
 # ID admin được phép sử dụng lệnh /add
-ADMIN_ID = 7605936504
-GROUP_ID = -1002408191237
+ADMIN_ID = 7509896689
+GROUP_ID = -1002256706038
 
 # Hàm kiểm tra server
 def check_server():
